@@ -1,0 +1,4 @@
+comment = 'Demo extension: hello_world'
+default_version = '1.0'
+module_pathname = '$libdir/demo_extension'
+relocatable = true
