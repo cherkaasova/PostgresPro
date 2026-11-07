@@ -1,0 +1,4 @@
+comment = 'Статистические функции для числовых массивов'
+default_version = '1.0'
+module_pathname = '$libdir/pg_array_stats'
+relocatable = true
