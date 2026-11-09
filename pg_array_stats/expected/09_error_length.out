@@ -1,0 +1,4 @@
+SELECT array_cov(ARRAY[1,2], ARRAY[1,2,3]);
+ERROR:  Массивы должны быть одинаковой длины
+SELECT array_corrcoef(ARRAY[1,2], ARRAY[1,2,3]);
+ERROR:  Массивы должны быть одинаковой длины

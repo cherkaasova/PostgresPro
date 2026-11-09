@@ -1,0 +1,4 @@
+SELECT array_mean(ARRAY[]::int[]);
+ERROR:  Массив не может быть пустым
+SELECT array_median(ARRAY[]::numeric[]);
+ERROR:  Массив не может быть пустым

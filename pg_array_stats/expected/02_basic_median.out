@@ -1,0 +1,12 @@
+SELECT array_median(ARRAY[1,2,3,100]);
+ array_median 
+--------------
+          2.5
+(1 row)
+
+SELECT array_median(ARRAY[1,2,3,4,5]);
+ array_median 
+--------------
+            3
+(1 row)
+

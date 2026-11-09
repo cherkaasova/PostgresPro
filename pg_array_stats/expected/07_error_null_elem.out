@@ -1,0 +1,4 @@
+SELECT array_mean(ARRAY[1, NULL, 3]);
+ERROR:  Массив не должен содержать NULL элементов
+SELECT array_stddev(ARRAY[NULL, NULL]);
+ERROR:  Массив должен содержать числовые значения
