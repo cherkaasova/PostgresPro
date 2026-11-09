@@ -1,0 +1,1 @@
+SELECT array_mean(ARRAY['a', 'b', 'c']);
