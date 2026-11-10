@@ -143,19 +143,12 @@ compare_double(const void *a, const void *b)
     return 0;
 }
 
-
 //преобразует результат double в numeric
 static Datum
 double_to_numeric(double value)
 {
-    if (!isfinite(value))
-        ereport(ERROR,
-                (errcode(ERRCODE_NUMERIC_VALUE_OUT_OF_RANGE),
-                 errmsg("Результат не может быть представлен конечным числом")));
-
     return DirectFunctionCall1(float8_numeric, Float8GetDatum(value));
 }
-
 
 //среднее арифметическое
 PG_FUNCTION_INFO_V1(array_mean);
@@ -168,6 +161,7 @@ array_mean(PG_FUNCTION_ARGS)
     double *nums = extract_numeric_array(array, &nelems);
     double result = calc_mean(nums, nelems);
 
+    if (!isfinite(result)) PG_RETURN_NULL();
     PG_RETURN_DATUM(double_to_numeric(result));
 }
 
@@ -190,6 +184,7 @@ array_median(PG_FUNCTION_ARGS)
     else
         result = (nums[nelems / 2 - 1] + nums[nelems / 2]) / 2.0;
 
+    if (!isfinite(result)) PG_RETURN_NULL();
     PG_RETURN_DATUM(double_to_numeric(result));
 }
 
@@ -214,6 +209,7 @@ array_variance(PG_FUNCTION_ARGS)
     mean = calc_mean(nums, nelems);
     result = calc_sum_sq_diff(nums, nelems, mean) / (nelems - 1);
 
+    if (!isfinite(result)) PG_RETURN_NULL();
     PG_RETURN_DATUM(double_to_numeric(result));
 }
 
@@ -240,6 +236,7 @@ array_stddev(PG_FUNCTION_ARGS)
     variance = calc_sum_sq_diff(nums, nelems, mean) / (nelems - 1);
     result = sqrt(variance);
 
+    if (!isfinite(result)) PG_RETURN_NULL();
     PG_RETURN_DATUM(double_to_numeric(result));
 }
 
@@ -261,8 +258,7 @@ array_percentile(PG_FUNCTION_ARGS)
     int lower_idx;
     int upper_idx;
 
-    p = DatumGetFloat8(
-        DirectFunctionCall1(numeric_float8, NumericGetDatum(p_numeric)));
+    p = DatumGetFloat8(DirectFunctionCall1(numeric_float8, NumericGetDatum(p_numeric)));
 
     if (!isfinite(p) || p < 0 || p > 100)
         ereport(ERROR,
@@ -270,12 +266,11 @@ array_percentile(PG_FUNCTION_ARGS)
                  errmsg("Перцентиль должен быть от 0 до 100")));
 
     qsort(nums, nelems, sizeof(double), compare_double);
-    index = (p / 100.0) * nelems - 1.0;
 
-    if (index < 0)
-        index = 0;
-    if (index > nelems - 1)
-        index = nelems - 1;
+    index = (p / 100.0) * (nelems - 1);
+    
+    if (index < 0) index = 0;
+    if (index > nelems - 1) index = nelems - 1;
 
     lower_idx = (int) floor(index);
     upper_idx = lower_idx + 1;
@@ -285,9 +280,9 @@ array_percentile(PG_FUNCTION_ARGS)
 
     fraction = index - lower_idx;
 
-    result = nums[lower_idx] +
-             (nums[upper_idx] - nums[lower_idx]) * fraction;
+    result = nums[lower_idx] + (nums[upper_idx] - nums[lower_idx]) * fraction;
 
+    if (!isfinite(result)) PG_RETURN_NULL();
     PG_RETURN_DATUM(double_to_numeric(result));
 }
 
@@ -327,6 +322,7 @@ array_cov(PG_FUNCTION_ARGS)
 
     result = sum / (n1 - 1);
 
+    if (!isfinite(result)) PG_RETURN_NULL();
     PG_RETURN_DATUM(double_to_numeric(result));
 }
 
@@ -376,5 +372,6 @@ array_corrcoef(PG_FUNCTION_ARGS)
 
     result = sum / sqrt(ssq1 * ssq2);
 
+    if (!isfinite(result)) PG_RETURN_NULL();
     PG_RETURN_DATUM(double_to_numeric(result));
 }
